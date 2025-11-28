@@ -277,7 +277,7 @@
         @foreach($kontaks as $kontak)
             <div class="col-md-6">
             <div class="info-item d-flex align-items-center">
-                <i class="icon bi $kontak['icon'] flex-shrink-0"></i>
+                <i class="icon bi {{ $kontak['icon'] }} flex-shrink-0"></i>
                 <div>
                 <h3 class="mb-1">{{ $kontak['label'] }}</h3>
                 <strong>

@@ -10,8 +10,8 @@
     <meta property="og:title" content="PT Intan Sejahtera Utama (PT ISMA) - Jasa Rekrutmen dan Penempatan Awak Kapal">
     <meta property="og:description" content="Perusahaan maritim profesional yang menyediakan layanan rekrutmen awak kapal dan tenaga pandu expert. Terpercaya, kompeten, dan sesuai standar internasional.">
     <meta property="og:type" content="website">
-    <!-- <meta property="og:image" content="https://domain-anda.com/logo.png">
-    <meta property="og:url" content="https://domain-anda.com"> -->
+    <!-- <meta property="og:image" content="https://domain-anda.com/logo.png"> -->
+    <meta property="og:url" content="https://intansejahterautama.co.id/">
 
     <meta name="keywords" content="PT ISMA, PT Intan Sejahtera Utama, rekrutmen awak kapal, penempatan crew kapal, tenaga pandu expert, jasa crewing, maritime recruitment, ship crew placement">
 
