@@ -9,36 +9,26 @@ use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Validator;
-class BeritaController extends Controller
+class GiatController extends Controller
 {
     public function index(Request $request)
     {
         if($request->ajax()){
-            $query = DB::table("news")->select('id',"content","date","author","image","title")->orderBy("id","desc")->get();
+            $query = DB::table("moment")->select('id',"image","title","description")->orderBy("id","desc")->get();
             return  Datatables::of($query)
                 ->addIndexColumn()
-                 ->editColumn('content', function($row){
-                    $clean = strip_tags($row->content);        // buang tag HTML
-                    return Str::limit($clean, 80, '...');      // batasi maksimal 80 char
-                })
-                ->editColumn('date', function($row){
-                    if (!$row->date) return '-';
-
-                    return Carbon::parse($row->date)
-                        ->locale('id')                     // bahasa Indonesia
-                        ->translatedFormat('d F Y');       // contoh: 27 November 2025
-                })
+                
                  // Tampilkan image dalam <img>
                 ->editColumn('image', function($row){
                     if (!$row->image) {
                         return '<span class="text-muted">No Image</span>';
                     }
 
-                    $url = asset('uploads/images/news/'.$row->image); // sesuaikan folder kamu
+                    $url = asset('uploads/images/giat/'.$row->image); // sesuaikan folder kamu
                     return '<img src="'.$url.'" style="max-width:100px;" class="img-fluid" />';
                 })
                 ->addColumn('aksi', function ($row) {
-                    $url = route('admin.berita.edit')."?id=".$row->id;
+                    $url = route('admin.giat.edit')."?id=".$row->id;
                 return '
                     <a title="Update Data" data-bs-toggle="tooltip" class="btn btn-sm btn-primary btn-edit" href="'.$url.'"><i class="fa fa-edit"></i></a>
                     <button title="Hapus Data" data-bs-toggle="tooltip" class="btn btn-sm btn-danger btn-delete" onclick="hapusData('.$row->id.')"><i class="fa fa-trash"></i></button>
@@ -48,7 +38,7 @@ class BeritaController extends Controller
             
             ->make(true);
         }else{
-            return view("page.berita.index");
+            return view("page.giat.index");
         }
     }
 
@@ -57,7 +47,7 @@ class BeritaController extends Controller
      */
     public function create()
     {
-        return view("page.berita.tambah");
+        return view("page.giat.tambah");
     }
    
     /**
@@ -67,10 +57,14 @@ class BeritaController extends Controller
     {
         $validates 	= [
             "judul"  => "required",
-            "isi_berita"  => "required",
-            "tanggal"  => "required|date",
-            "tags"  => "required",
-            'gambar'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
+            "deskripsi"  => "required",
+            'image'   => 'required|image|mimes:jpg,jpeg,png,webp|max:5048'
+        ];
+
+        $messages = [
+            "judul.required" => "Judul Wajib diisi!",
+            "deskripsi.required" => "Deskripsi Wajib diisi!",
+            "image.required" => "Image Wajib diisi!",
         ];
 
         $validation = Validator::make($request->all(), $validates);
@@ -80,25 +74,21 @@ class BeritaController extends Controller
                 "messages"   => $validation->errors()->first()
             ], 401);
         }
-        
         // upload gambar
         $imageName = null;
-        if ($request->hasFile('gambar')) {
-            $file = $request->file('gambar');             // FIX
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');             // FIX
             $imageName = time() . '.' . $file->extension();
-            $file->move(base_path('../../public_html/uploads/images/news'), $imageName);
-            // $file->move(public_path('uploads/images/news'), $imageName);
+            $file->move(base_path('../../public_html/uploads/images/giat'), $imageName);
+            // $file->move(public_path('uploads/images/giat'), $imageName);
         }
         $detail =  $request->tags;
         DB::beginTransaction();
         try {
             $data['title'] = $request->judul;
-            $data['content'] = $request->isi_berita;
-            $data['detail'] = implode(',', $detail);
-            $data['date'] = $request->tanggal;
-            $data['author'] = "Admin";
+            $data['description'] = $request->deskripsi;
             $data['image'] = $imageName;
-            $id = DB::table("news")->insert($data);
+            $id = DB::table("moment")->insert($data);
             DB::commit();
             return response()->json(['status'=>'success', 'messages'=>"Data berhasil disimpan."], 200);
         } catch(QueryException $e) { 
@@ -114,9 +104,8 @@ class BeritaController extends Controller
     public function edit(Request $request)
     {
         $id = $request->id;
-        $data = DB::table("news")->where("id",$id)->first();
-        $data->tags = $data->detail ? explode(',', $data->detail) : [];
-        return view("page.berita.edit",compact("data","id"));
+        $data = DB::table("moment")->where("id",$id)->first();
+        return view("page.giat.edit",compact("data","id"));
     }
 
     /**
@@ -126,11 +115,9 @@ class BeritaController extends Controller
     {
         $validates  = [
             "id"         => "required",
-            "judul"      => "required",
-            "isi_berita" => "required",
-            "tanggal"    => "required|date",
-            "tags"       => "required",
-            'gambar'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
+            "judul"  => "required",
+            "deskripsi"  => "required",
+            'image'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5048'
         ];
 
         $validation = Validator::make($request->all(), $validates);
@@ -147,30 +134,23 @@ class BeritaController extends Controller
             // Upload gambar baru jika ada
             $imageName = $request->old_image;
 
-            if ($request->hasFile('gambar')) {
-
+            if ($request->hasFile('image')) {
                 // hapus gambar lama
-                // if ($imageName && file_exists(base_path('uploads/images/news/' . $imageName))) {
-                //     unlink(public_path('uploads/images/news/' . $imageName));
+                // if ($imageName && file_exists(public_path('uploads/images/giat/' . $imageName))) {
+                //     unlink(public_path('uploads/images/giat/' . $imageName));
                 // }
-                if ($imageName && file_exists(base_path('../../public_html/uploads/images/news' . $imageName))) {
-                    unlink(base_path('../../public_html/uploads/images/news' . $imageName));
+                if ($imageName && file_exists(base_path('../../public_html/uploads/images/giat' . $imageName))) {
+                    unlink(base_path('../../public_html/uploads/images/giat' . $imageName));
                 }
-
-                $file = $request->file('gambar');
+                $file = $request->file('image');
                 $imageName = time() . '.' . $file->extension();
-                // $file->move(public_path('uploads/images/news'), $imageName);
-                $file->move(base_path('../../public_html/uploads/images/news'), $imageName);
+                $file->move(base_path('../../public_html/uploads/images/giat' . $imageName));
             }
 
-            $detail = implode(',', $request->tags);
 
-            DB::table("news")->where("id", $request->id)->update([
+            DB::table("moment")->where("id", $request->id)->update([
                 'title'   => $request->judul,
-                'content' => $request->isi_berita,
-                'detail'  => $detail,
-                'date'    => $request->tanggal,
-                'author'  => "Admin",
+                'description' => $request->deskripsi,
                 'image'   => $imageName,
             ]);
 
@@ -201,17 +181,16 @@ class BeritaController extends Controller
         DB::beginTransaction();
         try {
             // Ambil data untuk hapus gambar fisik
-            $data = DB::table('news')->where('id', $id)->first();
+            $data = DB::table('moment')->where('id', $id)->first();
 
             if ($data && $data->image) {
-                // $path = public_path('uploads/images/news/' . $data->image);
-                $path = base_path('../../public_html/uploads/images/news' . $data->image);
+                $path = base_path('../../public_html/uploads/images/giat' . $data->image);
                 if (file_exists($path)) {
                     unlink($path); // hapus file gambar
                 }
             }
 
-            DB::table('news')->where("id", $id)->delete();
+            DB::table('moment')->where("id", $id)->delete();
 
             DB::commit();
             return response()->json(['status'=>'success', 'messages'=>"Data berhasil dihapus."], 200);
@@ -220,5 +199,6 @@ class BeritaController extends Controller
             DB::rollback();
             return response()->json(['status'=>'error','messages'=> $e->errorInfo ], 500);
         }
+        
     }
 }

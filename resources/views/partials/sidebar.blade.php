@@ -45,6 +45,29 @@
             </a>
             </li>
 
+            <li class="nav-item">
+            <a href="{{ route('admin.sto') }}" class="nav-link {{  setActive(['admin.sto', 'admin.berita.sto', 'admin.berita.sto'], 'active')  }}">
+                <i class="nav-icon fa fa-solid fa-sitemap"></i>
+                <p>Struktur Organisasi</p>
+            </a>
+            </li>
+
+            <li class="nav-item">
+            <a href="{{ route('admin.giat') }}" class="nav-link {{  setActive(['admin.giat', 'admin.berita.giat', 'admin.berita.giat'], 'active')  }}">
+                <i class="nav-icon fa fa-solid fa-calendar-check"></i>
+                <p>Giat</p>
+            </a>
+            </li>
+
+            <li class="nav-item">
+            <a href="{{ route('admin.kontak') }}" class="nav-link {{  setActive(['admin.kontak', 'admin.berita.kontak', 'admin.berita.kontak'], 'active')  }}">
+                <i class="nav-icon fa fa-solid fa-envelope"></i>
+                <p>Kontak</p>
+            </a>
+            </li>
+
+            
+
         </ul>
         <!--end::Sidebar Menu-->
         </nav>
